@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="240" viewBox="0 0 480 240">
+  <rect x="1" y="1" width="478" height="238" fill="#f5f5f5" stroke="#cccccc" stroke-width="2" stroke-dasharray="10 8" />
+  <text x="240" y="115" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="22" fill="#999999">место для логотипа</text>
+  <text x="240" y="148" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#bbbbbb">480 x 240</text>
+</svg>

@@ -1,0 +1,23 @@
+.app {
+  min-height: 100vh;
+}
+
+.main {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 150px 24px 80px;
+}
+
+.block {
+  width: 100%;
+}
+
+.footer {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 24px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 14px;
+}

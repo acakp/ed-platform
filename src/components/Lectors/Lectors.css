@@ -1,0 +1,104 @@
+.lectors-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.lectors-search {
+  flex: 1 1 280px;
+  max-width: 420px;
+}
+
+.lectors-search input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.lectors-list {
+  display: grid;
+  gap: 16px;
+}
+
+.lector-open {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lector-open:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-raised);
+}
+
+.lector-photo {
+  flex: 0 0 112px;
+  width: 112px;
+}
+
+.lector-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: var(--color-bg-subtle);
+}
+
+.lector-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.lector-name {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.lector-degree {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+}
+
+.lector-disciplines {
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.lector-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .lector-open {
+    flex-direction: column;
+  }
+
+  .lector-photo {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .lector-photo img {
+    max-height: 220px;
+  }
+}
