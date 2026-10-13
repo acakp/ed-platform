@@ -1,13 +1,7 @@
 import './LectorDetail.css';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useReducer } from 'react';
 import { createPortal } from 'react-dom';
-
-const EMPTY_FORM = {
-  name: '',
-  phone: '',
-  telegram: '',
-  service: '',
-};
+import { applicationsReducer, initialState, ACTION_TYPES } from '../../reducers/applicationsReducer';
 
 function formatPrice(tariff) {
   const amount = `${tariff.currency} ${tariff.price.toLocaleString('ru-RU')}`;
@@ -17,9 +11,12 @@ function formatPrice(tariff) {
 function ContactForm({ lector, onClose }) {
   const titleId = useId();
   const closeButtonRef = useRef(null);
-  const [values, setValues] = useState(EMPTY_FORM);
-  const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
+  const [state, dispatch] = useReducer(applicationsReducer, initialState);
+  const { formValues, errors, items } = state;
+
+  useEffect(() => {
+    localStorage.setItem('ed-platform-applications', JSON.stringify(items));
+  }, [items]);
 
   useEffect(() => {
     const previouslyFocused = document.activeElement;
@@ -39,13 +36,23 @@ function ContactForm({ lector, onClose }) {
   }, [onClose]);
 
   const updateField = (field) => (event) => {
-    const { value } = event.target;
-    setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => {
-      if (!current[field]) return current;
-      const next = { ...current };
-      delete next[field];
-      return next;
+    dispatch({
+      type: ACTION_TYPES.UPDATE_FIELD,
+      field,
+      value: event.target.value,
+    });
+  };
+
+  const handleRemove = (id) => {
+    dispatch({
+      type: ACTION_TYPES.REMOVE_APPLICATION,
+      payload: id,
+    });
+  };
+
+  const handleClear = () => {
+    dispatch({
+      type: ACTION_TYPES.CLEAR_APPLICATIONS,
     });
   };
 
@@ -53,17 +60,24 @@ function ContactForm({ lector, onClose }) {
     event.preventDefault();
 
     const nextErrors = {};
-    if (!values.name.trim()) nextErrors.name = 'Укажите имя';
-    if (!values.phone.trim() && !values.telegram.trim()) {
+    if (!formValues.name.trim()) nextErrors.name = 'Укажите имя';
+    if (!formValues.phone.trim() && !formValues.telegram.trim()) {
       nextErrors.contacts = 'Укажите телефон или Telegram';
     }
-    if (!values.service) nextErrors.service = 'Выберите услугу';
+    if (!formValues.service) nextErrors.service = 'Выберите услугу';
 
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
+    if (Object.keys(nextErrors).length > 0) {
+      dispatch({ type: ACTION_TYPES.SET_ERRORS, errors: nextErrors });
+      return;
+    }
 
-    // Отправка на сервер появится позже. Пока заявка только собирается в форме.
-    setSubmitted(true);
+    dispatch({
+      type: ACTION_TYPES.ADD_APPLICATION,
+      payload: {
+        lectorName: lector.fullName,
+        ...formValues,
+      },
+    });
   };
 
   return createPortal(
@@ -93,106 +107,146 @@ function ContactForm({ lector, onClose }) {
           </button>
         </div>
 
-        {submitted ? (
-          <div className="contact-form-success" role="status">
-            <p>
-              Заявка для {lector.fullName} отправлена! С вами свяжутся в ближайшее время.
-            </p>
-            <button type="button" className="btn btn-primary" onClick={onClose}>
-              Закрыть
-            </button>
-          </div>
-        ) : (
-          <form className="contact-form" onSubmit={handleSubmit} noValidate>
+        <form className="contact-form" onSubmit={handleSubmit} noValidate>
+          <label className="contact-field">
+            <span>Имя</span>
+            <input
+              type="text"
+              name="name"
+              autoComplete="name"
+              value={formValues.name}
+              onChange={updateField('name')}
+              placeholder="Как к вам обращаться"
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? 'contact-name-error' : undefined}
+            />
+            {errors.name ? (
+              <span className="contact-field-error" id="contact-name-error">
+                {errors.name}
+              </span>
+            ) : null}
+          </label>
+
+          <div className="contact-fields">
             <label className="contact-field">
-              <span>Имя</span>
+              <span>Телефон</span>
+              <input
+                type="tel"
+                name="phone"
+                autoComplete="tel"
+                inputMode="tel"
+                value={formValues.phone}
+                onChange={updateField('phone')}
+                placeholder="+7 900 000-00-00"
+                aria-invalid={Boolean(errors.contacts)}
+                aria-describedby={errors.contacts ? 'contact-contacts-error' : undefined}
+              />
+            </label>
+
+            <label className="contact-field">
+              <span>Telegram</span>
               <input
                 type="text"
-                name="name"
-                autoComplete="name"
-                value={values.name}
-                onChange={updateField('name')}
-                placeholder="Как к вам обращаться"
-                aria-invalid={Boolean(errors.name)}
-                aria-describedby={errors.name ? 'contact-name-error' : undefined}
+                name="telegram"
+                autoComplete="off"
+                value={formValues.telegram}
+                onChange={updateField('telegram')}
+                placeholder="@username"
+                aria-invalid={Boolean(errors.contacts)}
+                aria-describedby={errors.contacts ? 'contact-contacts-error' : undefined}
               />
-              {errors.name ? (
-                <span className="contact-field-error" id="contact-name-error">
-                  {errors.name}
-                </span>
-              ) : null}
             </label>
+          </div>
+          {errors.contacts ? (
+            <p className="contact-field-error" id="contact-contacts-error">
+              {errors.contacts}
+            </p>
+          ) : (
+            <p className="contact-field-hint">Достаточно одного контакта: телефона или Telegram.</p>
+          )}
 
-            <div className="contact-fields">
-              <label className="contact-field">
-                <span>Телефон</span>
-                <input
-                  type="tel"
-                  name="phone"
-                  autoComplete="tel"
-                  inputMode="tel"
-                  value={values.phone}
-                  onChange={updateField('phone')}
-                  placeholder="+7 900 000-00-00"
-                  aria-invalid={Boolean(errors.contacts)}
-                  aria-describedby={errors.contacts ? 'contact-contacts-error' : undefined}
-                />
-              </label>
+          <label className="contact-field">
+            <span>Услуга</span>
+            <select
+              name="service"
+              value={formValues.service}
+              onChange={updateField('service')}
+              aria-invalid={Boolean(errors.service)}
+              aria-describedby={errors.service ? 'contact-service-error' : undefined}
+            >
+              <option value="">Выберите услугу</option>
+              {lector.tariffs.map((tariff) => (
+                <option key={tariff.name} value={tariff.name}>
+                  {tariff.name} — {formatPrice(tariff)}
+                </option>
+              ))}
+            </select>
+            {errors.service ? (
+              <span className="contact-field-error" id="contact-service-error">
+                {errors.service}
+              </span>
+            ) : null}
+          </label>
 
-              <label className="contact-field">
-                <span>Telegram</span>
-                <input
-                  type="text"
-                  name="telegram"
-                  autoComplete="off"
-                  value={values.telegram}
-                  onChange={updateField('telegram')}
-                  placeholder="@username"
-                  aria-invalid={Boolean(errors.contacts)}
-                  aria-describedby={errors.contacts ? 'contact-contacts-error' : undefined}
-                />
-              </label>
-            </div>
-            {errors.contacts ? (
-              <p className="contact-field-error" id="contact-contacts-error">
-                {errors.contacts}
-              </p>
-            ) : (
-              <p className="contact-field-hint">Достаточно одного контакта: телефона или Telegram.</p>
-            )}
+          <div className="contact-form-actions">
+            <button type="submit" className="btn btn-primary">
+              Оставить заявку
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>
+              Отмена
+            </button>
+          </div>
+        </form>
 
-            <label className="contact-field">
-              <span>Услуга</span>
-              <select
-                name="service"
-                value={values.service}
-                onChange={updateField('service')}
-                aria-invalid={Boolean(errors.service)}
-                aria-describedby={errors.service ? 'contact-service-error' : undefined}
+        {items.length > 0 && (
+          <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 style={{ margin: 0 }}>Поданные заявки ({items.length})</h4>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleClear}
+                style={{ padding: '4px 8px', fontSize: '12px' }}
               >
-                <option value="">Выберите услугу</option>
-                {lector.tariffs.map((tariff) => (
-                  <option key={tariff.name} value={tariff.name}>
-                    {tariff.name} — {formatPrice(tariff)}
-                  </option>
-                ))}
-              </select>
-              {errors.service ? (
-                <span className="contact-field-error" id="contact-service-error">
-                  {errors.service}
-                </span>
-              ) : null}
-            </label>
-
-            <div className="contact-form-actions">
-              <button type="submit" className="btn btn-primary">
-                Оставить заявку
-              </button>
-              <button type="button" className="btn btn-secondary" onClick={onClose}>
-                Отмена
+                Очистить все
               </button>
             </div>
-          </form>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {items.map((item) => (
+                <li
+                  key={item.id}
+                  style={{
+                    padding: '8px 12px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <div><strong>{item.service}</strong> ({item.lectorName})</div>
+                    <small style={{ color: '#666' }}>{item.name} · {item.phone || item.telegram}</small>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(item.id)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#d32f2f',
+                      fontSize: '18px',
+                      cursor: 'pointer',
+                      padding: '4px 8px',
+                    }}
+                    title="Удалить"
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     </div>,

@@ -2,7 +2,8 @@ import './Lectors.css';
 import LECTORS_DATA from './lectorsData';
 import LectorDetail from './LectorDetail';
 import LectorPhoto from './LectorPhoto';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useReducer } from 'react';
+import { applicationsReducer, initialState, ACTION_TYPES } from '../../reducers/applicationsReducer';
 
 function plural(count, one, few, many) {
   const mod10 = count % 10;
@@ -30,6 +31,9 @@ function lectorText(lector) {
 function Lectors() {
   const [selectedId, setSelectedId] = useState(null);
   const [query, setQuery] = useState('');
+  const [showMyApplications, setShowMyApplications] = useState(false);
+  const [state, dispatch] = useReducer(applicationsReducer, initialState);
+  const { items } = state;
 
   const selectedLector = LECTORS_DATA.find((lector) => lector.id === selectedId) ?? null;
 
@@ -51,6 +55,14 @@ function Lectors() {
     setSelectedId(null);
   };
 
+  const handleRemoveApplication = (id) => {
+    dispatch({ type: ACTION_TYPES.REMOVE_APPLICATION, payload: id });
+  };
+
+  const handleClearApplications = () => {
+    dispatch({ type: ACTION_TYPES.CLEAR_APPLICATIONS });
+  };
+
   if (selectedLector) {
     return <LectorDetail lector={selectedLector} onBack={handleBack} />;
   }
@@ -61,18 +73,79 @@ function Lectors() {
         <div>
           <h1 className="page-title">Лекторы</h1>
         </div>
-        <label className="lectors-search">
-          <span className="visually-hidden">Найти лектора</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Имя, дисциплина или вуз"
-          />
-        </label>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setShowMyApplications((prev) => !prev)}
+          >
+            {showMyApplications ? 'К списку лекторов' : `Мои заявки (${items.length})`}
+          </button>
+          {!showMyApplications && (
+            <label className="lectors-search">
+              <span className="visually-hidden">Найти лектора</span>
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Имя, дисциплина или вуз"
+              />
+            </label>
+          )}
+        </div>
       </header>
 
-      {filteredLectors.length === 0 ? (
+      {showMyApplications ? (
+        <div className="card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 className="section-title" style={{ margin: 0 }}>Мои поданные заявки</h2>
+            {items.length > 0 && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleClearApplications}
+                style={{ padding: '4px 12px', fontSize: '14px' }}
+              >
+                Очистить все
+              </button>
+            )}
+          </div>
+          {items.length === 0 ? (
+            <p className="card card-muted lectors-empty">У вас пока нет поданных заявок.</p>
+          ) : (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {items.map((item) => (
+                <li
+                  key={item.id}
+                  style={{
+                    padding: '16px',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: '#fff',
+                  }}
+                >
+                  <div>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>{item.service}</h3>
+                    <p style={{ margin: '0 0 4px 0', color: '#555' }}>Лектор: <strong>{item.lectorName}</strong></p>
+                    <small style={{ color: '#777' }}>Имя: {item.name} | Контакт: {item.phone || item.telegram}</small>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveApplication(item.id)}
+                    className="btn btn-secondary"
+                    style={{ color: '#d32f2f', borderColor: '#d32f2f' }}
+                  >
+                    Удалить
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : filteredLectors.length === 0 ? (
         <p className="card card-muted lectors-empty">
           {LECTORS_DATA.length === 0
             ? 'Список лекторов пока пуст - загляните позже.'
