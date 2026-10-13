@@ -3,7 +3,9 @@ const STORAGE_KEY = 'ed-platform-applications';
 const getSavedApplications = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     console.error('Error loading applications from localStorage', error);
     return [];
@@ -30,6 +32,7 @@ export const ACTION_TYPES = {
 };
 
 export function applicationsReducer(state, action) {
+  let nextItems;
   switch (action.type) {
     case ACTION_TYPES.UPDATE_FIELD:
       return {
@@ -49,27 +52,45 @@ export function applicationsReducer(state, action) {
         errors: action.errors,
       };
     case ACTION_TYPES.ADD_APPLICATION:
+      nextItems = [
+        ...state.items,
+        {
+          id: Date.now(),
+          ...action.payload,
+        },
+      ];
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextItems));
+      } catch (err) {
+        console.error('Error saving to localStorage', err);
+      }
       return {
         ...state,
-        items: [
-          ...state.items,
-          {
-            id: Date.now(),
-            ...action.payload,
-          },
-        ],
+        items: nextItems,
         formValues: initialState.formValues,
         errors: {},
       };
     case ACTION_TYPES.REMOVE_APPLICATION:
+      nextItems = state.items.filter((item) => item.id !== action.payload);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextItems));
+      } catch (err) {
+        console.error('Error saving to localStorage', err);
+      }
       return {
         ...state,
-        items: state.items.filter((item) => item.id !== action.payload),
+        items: nextItems,
       };
     case ACTION_TYPES.CLEAR_APPLICATIONS:
+      nextItems = [];
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextItems));
+      } catch (err) {
+        console.error('Error saving to localStorage', err);
+      }
       return {
         ...state,
-        items: [],
+        items: nextItems,
       };
     default:
       return state;
