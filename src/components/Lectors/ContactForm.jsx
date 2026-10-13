@@ -12,7 +12,7 @@ function ContactForm({ lector, onClose }) {
   const titleId = useId();
   const closeButtonRef = useRef(null);
   const [state, dispatch] = useReducer(applicationsReducer, initialState);
-  const { formValues, errors } = state;
+  const { formValues, errors, items } = state;
 
   useEffect(() => {
     const previouslyFocused = document.activeElement;
@@ -36,6 +36,19 @@ function ContactForm({ lector, onClose }) {
       type: ACTION_TYPES.UPDATE_FIELD,
       field,
       value: event.target.value,
+    });
+  };
+
+  const handleRemove = (id) => {
+    dispatch({
+      type: ACTION_TYPES.REMOVE_APPLICATION,
+      payload: id,
+    });
+  };
+
+  const handleClear = () => {
+    dispatch({
+      type: ACTION_TYPES.CLEAR_APPLICATIONS,
     });
   };
 
@@ -180,6 +193,57 @@ function ContactForm({ lector, onClose }) {
             </button>
           </div>
         </form>
+
+        {items.length > 0 && (
+          <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 style={{ margin: 0 }}>Поданные заявки ({items.length})</h4>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleClear}
+                style={{ padding: '4px 8px', fontSize: '12px' }}
+              >
+                Очистить все
+              </button>
+            </div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {items.map((item) => (
+                <li
+                  key={item.id}
+                  style={{
+                    padding: '8px 12px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <div><strong>{item.service}</strong> ({item.lectorName})</div>
+                    <small style={{ color: '#666' }}>{item.name} · {item.phone || item.telegram}</small>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(item.id)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#d32f2f',
+                      fontSize: '18px',
+                      cursor: 'pointer',
+                      padding: '4px 8px',
+                    }}
+                    title="Удалить"
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>,
     document.body,
