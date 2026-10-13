@@ -15,6 +15,10 @@ function ContactForm({ lector, onClose }) {
   const { formValues, errors, items } = state;
 
   useEffect(() => {
+    localStorage.setItem('ed-platform-applications', JSON.stringify(items));
+  }, [items]);
+
+  useEffect(() => {
     const previouslyFocused = document.activeElement;
     closeButtonRef.current?.focus();
     document.body.style.overflow = 'hidden';

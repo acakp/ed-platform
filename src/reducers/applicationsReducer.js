@@ -1,5 +1,17 @@
+const STORAGE_KEY = 'ed-platform-applications';
+
+const getSavedApplications = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch (error) {
+    console.error('Error loading applications from localStorage', error);
+    return [];
+  }
+};
+
 export const initialState = {
-  items: [],
+  items: getSavedApplications(),
   formValues: {
     name: '',
     phone: '',
