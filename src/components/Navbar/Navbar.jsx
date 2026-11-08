@@ -1,20 +1,29 @@
+import { NavLink } from 'react-router-dom';
 import './Navbar.css';
 
-function Navbar({ sections, current, onNavigate }) {
+const LINKS = [
+  { to: '/', label: 'Главная', end: true },
+  { to: '/about', label: 'О нас' },
+  { to: '/lecturers', label: 'Лекторы' },
+];
+
+function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-brand">Ed-Platform</div>
         <ul className="navbar-list">
-          {sections.map((section) => (
-            <li key={section.id}>
-              <button
-                type="button"
-                className={`navbar-button ${section.id === current ? 'active' : ''}`}
-                onClick={() => onNavigate(section.id)}
+          {LINKS.map((link) => (
+            <li key={link.to}>
+              <NavLink
+                to={link.to}
+                end={link.end}
+                className={({ isActive }) =>
+                  `navbar-button${isActive ? ' active' : ''}`
+                }
               >
-                {section.label}
-              </button>
+                {link.label}
+              </NavLink>
             </li>
           ))}
         </ul>

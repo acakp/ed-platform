@@ -203,6 +203,17 @@ button.card {
   background: var(--color-bg-subtle);
 }
 
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.not-found-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 @media (max-width: 700px) {
   .page-title {
     font-size: 28px;

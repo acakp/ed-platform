@@ -37,6 +37,7 @@
 }
 
 .navbar-button {
+  display: inline-block;
   padding: 12px 28px;
   border: none;
   border-radius: var(--radius-md);
@@ -45,6 +46,7 @@
   font-size: 32px;
   font-weight: 600;
   line-height: 1.2;
+  text-decoration: none;
   cursor: pointer;
 }
 

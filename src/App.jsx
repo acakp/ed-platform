@@ -1,35 +1,22 @@
-import Main from './components/Main/Main';
-import Navbar from './components/Navbar/Navbar';
-import About from './components/About/About';
-import Lectors from './components/Lectors/Lectors';
-import Partners from './components/Partners/Partners';
-import { useState } from 'react';
-
-const SECTIONS = [
-  { id: 'main', label: 'Главная' },
-  { id: 'about', label: 'О нас' },
-  { id: 'lectors', label: 'Лекторы' },
-  { id: 'partners', label: 'Партнеры' },
-];
+import { Route, Routes } from 'react-router-dom';
+import Layout from './components/Layout/Layout';
+import AboutPage from './pages/AboutPage';
+import HomePage from './pages/HomePage';
+import LecturerDetailPage from './pages/LecturerDetailPage';
+import LecturersPage from './pages/LecturersPage';
+import NotFound from './pages/NotFound';
 
 function App() {
-  const [section, setSection] = useState('main');
-
   return (
-    <div className="app">
-      <Navbar
-        sections={SECTIONS}
-        current={section}
-        onNavigate={setSection}
-      />
-      <main className="main">
-        {section === 'main' && <Main />}
-        {section === 'about' && <About />}
-        {section === 'lectors' && <Lectors />}
-        {section === 'partners' && <Partners />}
-      </main>
-      <footer className="footer">(С) Шайдуллин А.Р.</footer>
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/lecturers" element={<LecturersPage />} />
+        <Route path="/lecturers/:id" element={<LecturerDetailPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
   );
 }
 
